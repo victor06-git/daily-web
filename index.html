@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ritual diario</title>
+<meta name="description" content="Tu rutina diaria: noticias de la semana, meditación, aprender algo nuevo, código, inglés, startups y hackathons.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232B54E0'/%3E%3Crect x='7' y='7' width='8' height='8' rx='2' fill='%23fff'/%3E%3Crect x='17' y='7' width='8' height='8' rx='2' fill='%23fff' opacity='.55'/%3E%3Crect x='7' y='17' width='8' height='8' rx='2' fill='%23fff' opacity='.3'/%3E%3Crect x='17' y='17' width='8' height='8' rx='2' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF1F6; --surface:#FFFFFF; --ink:#142039; --muted:#56657F; --line:#D3DBE7;
+  --accent:#2B54E0; --accent-ink:#FFFFFF; --accent-soft:#DFE6FB; --done:#1F8A63;
+  --h0:#DCE3EE; --h1:#B3C4F2; --h2:#7895EC; --h3:#3E63E2; --h4:#18338F;
+  --display:"Bricolage Grotesque", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", system-ui, sans-serif;
+  --r-sm:6px; --r-md:12px; --r-lg:20px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0E1525; --surface:#162038; --ink:#E6EBF5; --muted:#97A5BF; --line:#27334F;
+    --accent:#7F9BFF; --accent-ink:#0E1525; --accent-soft:#1F2C52; --done:#5BD1A3;
+    --h0:#1C2741; --h1:#27407D; --h2:#3D5FC9; --h3:#6F8EFF; --h4:#BACBFF;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.6 var(--body);-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-underline-offset:3px}
+a:hover{text-decoration-thickness:2px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
+button{font:inherit;cursor:pointer}
+h1,h2,h3{font-family:var(--display);line-height:1.1;margin:0;letter-spacing:-.01em}
+h2{font-size:clamp(1.6rem,3vw,2.1rem);font-weight:800}
+h3{font-size:1.15rem;font-weight:600}
+p{margin:0 0 .8em}
+.wrap{max-width:1140px;margin:0 auto;padding:0 20px}
+
+/* Hero */
+.hero{padding:44px 0 28px}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
+.hero h1{font-size:clamp(2.3rem,6vw,4.2rem);font-weight:800;letter-spacing:-.03em;max-width:15ch}
+.hero .date{color:var(--muted);margin-top:10px;font-size:1.05rem}
+.today-score{text-align:right}
+.today-score strong{font-family:var(--display);font-size:1.35rem}
+.today-score span{display:block;color:var(--muted);font-size:.95rem}
+.heat-block{margin-top:30px}
+.heat-scroll{overflow-x:auto;padding:4px 4px 6px}
+@media (max-width:600px){.today-score{text-align:left}}
+.heat{display:grid;grid-template-rows:repeat(7,13px);grid-auto-flow:column;grid-auto-columns:13px;gap:3px;width:max-content}
+.cell{width:13px;height:13px;border-radius:3px;background:var(--h0)}
+.cell.l1{background:var(--h1)}.cell.l2{background:var(--h2)}.cell.l3{background:var(--h3)}.cell.l4{background:var(--h4)}
+.cell.today{outline:2px solid var(--ink);outline-offset:1px}
+.cell.future{background:transparent}
+.heat.reveal .cell{animation:pop .5s both}
+@keyframes pop{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:none}}
+.heat-meta{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:12px;color:var(--muted);font-size:.95rem}
+.legend{display:flex;align-items:center;gap:4px}
+.legend .cell{display:inline-block}
+
+/* Nav */
+nav.jump{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav.jump ul{list-style:none;margin:0;padding:10px 0;display:flex;gap:6px;overflow-x:auto}
+nav.jump a{display:block;padding:6px 12px;border-radius:999px;color:var(--ink);text-decoration:none;white-space:nowrap;font-size:.95rem}
+nav.jump a:hover{background:var(--accent-soft)}
+
+/* Layout */
+.layout{display:grid;grid-template-columns:330px 1fr;gap:48px;padding:36px 0 80px;align-items:start}
+@media (max-width:900px){.layout{grid-template-columns:1fr;gap:36px}}
+aside.today{position:sticky;top:70px}
+@media (max-width:900px){aside.today{position:static}}
+section.block{padding-bottom:56px;margin-bottom:56px;border-bottom:1px solid var(--line);scroll-margin-top:70px}
+section.block:last-child{border-bottom:0;margin-bottom:0}
+.lead{color:var(--muted);max-width:62ch;margin:10px 0 22px}
+
+/* Checklist */
+.checklist{list-style:none;margin:16px 0 0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg)}
+.checklist li{border-bottom:1px solid var(--line)}
+.checklist li:last-child{border-bottom:0}
+.check{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;cursor:pointer}
+.check input{position:absolute;opacity:0;pointer-events:none}
+.box{flex:none;width:24px;height:24px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;margin-top:1px;transition:background .2s,border-color .2s}
+.box svg{opacity:0;transition:opacity .2s}
+.check input:checked + .box{background:var(--done);border-color:var(--done)}
+.check input:checked + .box svg{opacity:1}
+.check input:focus-visible + .box{outline:3px solid var(--accent);outline-offset:2px}
+.check .t{font-weight:700;display:block}
+.check .h{color:var(--muted);font-size:.9rem;display:block;line-height:1.4}
+.check input:checked ~ .txt .t{text-decoration:line-through;text-decoration-color:var(--muted)}
+.check a{font-size:.9rem}
+.aside-note{color:var(--muted);font-size:.9rem;margin-top:14px}
+
+/* Buttons and controls */
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 16px;border-radius:999px;font-weight:700}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.5;cursor:default}
+.seg{display:inline-flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1px solid var(--line);background:transparent;color:var(--ink);padding:6px 14px;border-radius:999px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* News */
+.news{list-style:none;padding:0;margin:18px 0 0;counter-reset:n}
+.news li{display:grid;grid-template-columns:2.2rem 1fr;gap:4px 10px;padding:12px 0;border-top:1px solid var(--line);counter-increment:n}
+.news li::before{content:counter(n);font-family:var(--display);font-weight:800;color:var(--muted);font-size:1.1rem;grid-row:span 2}
+.news .title{font-weight:700;color:var(--ink);text-decoration:none}
+.news .title:hover{color:var(--accent);text-decoration:underline}
+.news .meta{color:var(--muted);font-size:.88rem}
+.news .meta a{color:var(--muted)}
+.status{color:var(--muted);padding:14px 0}
+.news li.status::before{content:none}
+.sources{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 24px;margin-top:26px;padding:0;list-style:none}
+.sources li{padding:6px 0}
+.sources small{display:block;color:var(--muted);line-height:1.35}
+
+/* Meditation */
+.medi{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start}
+@media (max-width:700px){.medi{grid-template-columns:1fr}}
+.steps{padding-left:1.3em;margin:0}
+.steps li{margin-bottom:10px;padding-left:4px}
+.breath-panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:22px;text-align:center}
+.orb-stage{height:230px;display:grid;place-items:center}
+.orb{width:200px;height:200px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--h1),var(--h3) 70%);transform:scale(.55);transition-property:transform;transition-timing-function:ease-in-out;display:grid;place-items:center}
+.orb span{color:#fff;font-family:var(--display);font-weight:600;font-size:1.25rem;transform:scale(1.4)}
+.timer{font-family:var(--display);font-size:2.4rem;font-weight:800;font-variant-numeric:tabular-nums;margin:6px 0}
+.phase-desc{color:var(--muted);font-size:.95rem;min-height:1.6em}
+.breath-panel .seg{justify-content:center;margin:10px 0}
+
+/* Lesson */
+.lesson{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:var(--r-md);padding:24px 26px}
+.tag{display:inline-block;background:var(--accent-soft);color:var(--ink);padding:2px 10px;border-radius:999px;font-size:.85rem;font-weight:700;margin-bottom:12px}
+.lesson h3{font-size:1.6rem;font-weight:800;margin-bottom:12px}
+.try{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+.try b{display:block}
+textarea{width:100%;min-height:90px;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:12px;resize:vertical}
+label.lbl{display:block;font-weight:700;margin:22px 0 8px}
+.saved{color:var(--done);font-size:.9rem;min-height:1.4em}
+.phrase{margin-top:30px}
+.phrase q{font-family:var(--display);font-size:1.5rem;font-weight:600;quotes:none;display:block}
+.phrase p{color:var(--muted);margin-top:6px}
+
+/* Startups & hackathons */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:36px}
+@media (max-width:700px){.two{grid-template-columns:1fr}}
+.idea{font-family:var(--display);font-size:1.45rem;font-weight:600;line-height:1.3;margin:12px 0 16px;min-height:3.8em}
+.links{list-style:none;padding:0;margin:12px 0 0}
+.links li{padding:8px 0;border-top:1px solid var(--line)}
+.links small{display:block;color:var(--muted);line-height:1.35}
+ol.prep{padding-left:1.3em}
+ol.prep li{margin-bottom:8px}
+
+/* Reminders */
+.remind{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:start}
+@media (max-width:600px){.remind{grid-template-columns:1fr}}
+input[type=time]{font:inherit;font-size:1.6rem;font-family:var(--display);font-weight:800;padding:8px 12px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);color:var(--ink)}
+.small{font-size:.92rem;color:var(--muted)}
+footer{border-top:1px solid var(--line);padding:26px 0 40px;color:var(--muted);font-size:.92rem}
+footer .row{justify-content:space-between}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+
+<header class="wrap hero">
+  <div class="hero-top">
+    <div>
+      <h1 id="greeting">Hola.</h1>
+      <div class="date" id="date"></div>
+    </div>
+    <div class="today-score" aria-live="polite">
+      <strong id="score">0 de 7</strong>
+      <span id="streak">Racha: 0 días</span>
+    </div>
+  </div>
+  <div class="heat-block">
+    <div class="heat-scroll" id="heatScroll">
+      <div class="heat" id="heat" role="img" aria-label="Mapa de hábitos de las últimas 53 semanas"></div>
+    </div>
+    <div class="heat-meta">
+      <span>Un día cuenta para la racha cuando completas 4 de los 7 hábitos.</span>
+      <span class="legend" aria-hidden="true">Menos <i class="cell"></i><i class="cell l1"></i><i class="cell l2"></i><i class="cell l3"></i><i class="cell l4"></i> Más</span>
+    </div>
+  </div>
+</header>
+
+<nav class="jump" aria-label="Secciones">
+  <div class="wrap"><ul>
+    <li><a href="#hoy">Hoy</a></li>
+    <li><a href="#noticias">Noticias</a></li>
+    <li><a href="#meditar">Meditar</a></li>
+    <li><a href="#aprender">Aprender</a></li>
+    <li><a href="#startups">Startups y hackathons</a></li>
+    <li><a href="#recordatorio">Recordatorio</a></li>
+  </ul></div>
+</nav>
+
+<main class="wrap layout">
+  <aside class="today" id="hoy" aria-labelledby="hoyTitle">
+    <h2 id="hoyTitle">Hoy</h2>
+    <ul class="checklist" id="checklist"></ul>
+    <p class="aside-note">Se guarda solo en este navegador. Mañana empieza una lista nueva.</p>
+  </aside>
+
+  <div>
+    <section class="block" id="noticias" aria-labelledby="newsTitle">
+      <h2 id="newsTitle">Lo más relevante de la semana</h2>
+      <p class="lead">Las historias con más votos de los últimos 7 días en Hacker News, en directo. Lee 3 y quédate con una idea.</p>
+      <div class="seg" role="group" aria-label="Filtrar noticias" id="newsFilters">
+        <button aria-pressed="true" data-q="">Todo</button>
+        <button aria-pressed="false" data-q="AI">IA</button>
+        <button aria-pressed="false" data-q="data">Datos</button>
+        <button aria-pressed="false" data-q="startup">Startups</button>
+        <button aria-pressed="false" data-q="open source">Open source</button>
+      </div>
+      <ol class="news" id="news" aria-live="polite"></ol>
+      <h3 style="margin-top:34px">Otras fuentes para tu repaso semanal</h3>
+      <ul class="sources">
+        <li><a href="https://www.xataka.com" target="_blank" rel="noopener">Xataka</a><small>Tecnología en español, rápido de leer.</small></li>
+        <li><a href="https://elpais.com/tecnologia/" target="_blank" rel="noopener">El País Tecnología</a><small>Contexto, regulación y empresas en España.</small></li>
+        <li><a href="https://www.technologyreview.com" target="_blank" rel="noopener">MIT Technology Review</a><small>IA y ciencia con análisis.</small></li>
+        <li><a href="https://www.deeplearning.ai/the-batch/" target="_blank" rel="noopener">The Batch</a><small>Resumen semanal de IA de Andrew Ng.</small></li>
+        <li><a href="https://importai.substack.com" target="_blank" rel="noopener">Import AI</a><small>Investigación en IA explicada cada semana.</small></li>
+        <li><a href="https://www.dataengineeringweekly.com" target="_blank" rel="noopener">Data Engineering Weekly</a><small>Lo que pasa en el mundo del dato.</small></li>
+        <li><a href="https://techcrunch.com/category/startups/" target="_blank" rel="noopener">TechCrunch Startups</a><small>Rondas, lanzamientos y fundadores.</small></li>
+        <li><a href="https://www.producthunt.com" target="_blank" rel="noopener">Product Hunt</a><small>Productos nuevos cada día.</small></li>
+      </ul>
+    </section>
+
+    <section class="block" id="meditar" aria-labelledby="mediTitle">
+      <h2 id="mediTitle">Meditar</h2>
+      <p class="lead">Cinco minutos al día bastan para empezar. No se trata de dejar la mente en blanco, sino de notar cuándo te vas y volver.</p>
+      <div class="medi">
+        <div>
+          <h3>Cómo hacerlo</h3>
+          <ol class="steps" style="margin-top:12px">
+            <li>Siéntate con la espalda recta y los hombros sueltos. Elige la duración y pulsa empezar.</li>
+            <li>Cierra los ojos o deja la mirada en un punto fijo del suelo.</li>
+            <li>Sigue la bola: se hace grande al inhalar, se para al retener y se encoge al exhalar. Respira por la nariz.</li>
+            <li>Te vas a distraer. Cuando lo notes, di mentalmente «pensando» y vuelve a la respiración, sin juzgarte. Ese volver es el ejercicio.</li>
+            <li>Al sonar el final, quédate 30 segundos quieto y fíjate en cómo está tu cuerpo antes de levantarte.</li>
+          </ol>
+          <h3 style="margin-top:22px">Qué técnica elegir</h3>
+          <p class="small" style="margin-top:8px"><b>Cuadrada (4-4-4-4):</b> para centrarte antes de estudiar o programar.<br><b>4-7-8:</b> para relajarte por la noche o antes de un pitch.<br><b>Coherente (5-5):</b> ritmo suave y constante para sesiones largas.</p>
+        </div>
+        <div class="breath-panel">
+          <div class="seg" role="group" aria-label="Técnica" id="techniques">
+            <button aria-pressed="true" data-t="box">Cuadrada</button>
+            <button aria-pressed="false" data-t="478">4-7-8</button>
+            <button aria-pressed="false" data-t="coh">Coherente</button>
+          </div>
+          <div class="orb-stage"><div class="orb" id="orb"><span id="orbLabel">Listo</span></div></div>
+          <div class="timer" id="timer">05:00</div>
+          <div class="phase-desc" id="phaseDesc" aria-live="polite">Elige duración y empieza.</div>
+          <div class="seg" role="group" aria-label="Duración" id="durations">
+            <button aria-pressed="false" data-m="3">3 min</button>
+            <button aria-pressed="true" data-m="5">5 min</button>
+            <button aria-pressed="false" data-m="10">10 min</button>
+            <button aria-pressed="false" data-m="15">15 min</button>
+          </div>
+          <div class="row" style="justify-content:center;margin-top:8px">
+            <button class="btn primary" id="mediStart">Empezar</button>
+            <button class="btn" id="mediReset">Reiniciar</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="aprender" aria-labelledby="learnTitle">
+      <h2 id="learnTitle">Aprende algo nuevo</h2>
+      <p class="lead">Una idea al día sobre IA, datos, cloud, startups o hackathons, con un mini reto para fijarla.</p>
+      <article class="lesson" id="lesson" aria-live="polite"></article>
+      <div class="row" style="margin-top:14px">
+        <button class="btn" id="nextLesson">Ver otra lección</button>
+        <span class="small" id="lessonCount"></span>
+      </div>
+      <label class="lbl" for="note">Lo que he aprendido hoy (una línea vale)</label>
+      <textarea id="note" placeholder="Ej.: Parquet guarda los datos por columnas, por eso leer 2 columnas de 50 es mucho más rápido."></textarea>
+      <div class="saved" id="saved" aria-live="polite"></div>
+
+      <div class="phrase">
+        <h3>Frase en inglés del día</h3>
+        <q id="phraseEn"></q>
+        <p id="phraseEs"></p>
+      </div>
+    </section>
+
+    <section class="block" id="startups" aria-labelledby="stTitle">
+      <h2 id="stTitle">Startups y hackathons</h2>
+      <p class="lead">Entrena el músculo de las ideas y ten siempre localizado tu próximo hackathon.</p>
+      <div class="two">
+        <div>
+          <h3>Idea del día</h3>
+          <p class="idea" id="idea"></p>
+          <button class="btn" id="newIdea">Otra idea</button>
+          <p class="small" style="margin-top:14px">Pregúntate: ¿quién paga por esto?, ¿qué hacen hoy sin ello?, ¿qué demo enseñarías en 2 minutos?</p>
+          <h3 style="margin-top:28px">Para aprender de startups</h3>
+          <ul class="links">
+            <li><a href="https://www.startupschool.org" target="_blank" rel="noopener">Startup School de Y Combinator</a><small>Curso gratis para fundadores.</small></li>
+            <li><a href="https://paulgraham.com/articles.html" target="_blank" rel="noopener">Ensayos de Paul Graham</a><small>Empieza por «Do Things that Don't Scale».</small></li>
+            <li><a href="https://www.momtestbook.com" target="_blank" rel="noopener">The Mom Test</a><small>Cómo hablar con usuarios sin que te mientan.</small></li>
+            <li><a href="https://opendata-ajuntament.barcelona.cat" target="_blank" rel="noopener">Open Data BCN</a><small>Datos abiertos de Barcelona para tus proyectos.</small></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Encuentra tu próximo hackathon</h3>
+          <ul class="links">
+            <li><a href="https://devpost.com/hackathons" target="_blank" rel="noopener">Devpost</a><small>Buscador de hackathons online y presenciales.</small></li>
+            <li><a href="https://mlh.io/seasons" target="_blank" rel="noopener">Major League Hacking</a><small>Calendario de hackathons de estudiantes.</small></li>
+            <li><a href="https://hackupc.com" target="_blank" rel="noopener">HackUPC</a><small>El gran hackathon de estudiantes de Barcelona.</small></li>
+            <li><a href="https://www.hackjunction.com" target="_blank" rel="noopener">Junction</a><small>Uno de los mayores de Europa, en Helsinki.</small></li>
+            <li><a href="https://www.kaggle.com/competitions" target="_blank" rel="noopener">Kaggle Competitions</a><small>Competiciones de datos e IA, todo el año.</small></li>
+          </ul>
+          <h3 style="margin-top:28px">Antes del próximo hackathon</h3>
+          <ol class="prep">
+            <li>Cierra equipo con roles claros: front, back, datos/IA y pitch.</li>
+            <li>Lee los retos y las APIs de los sponsors: suelen tener premio propio.</li>
+            <li>Ten una plantilla lista: repo, auth y deploy en Vercel funcionando.</li>
+            <li>Construye la demo primero: un camino feliz que funcione siempre.</li>
+            <li>Ensaya un pitch de 2 minutos: problema, demo, cómo funciona, impacto.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="recordatorio" aria-labelledby="remTitle">
+      <h2 id="remTitle">Recordatorio diario</h2>
+      <p class="lead">Elige a qué hora quieres hacer tu ritual. El calendario te avisará todos los días aunque la web esté cerrada.</p>
+      <div class="remind">
+        <div>
+          <label class="sr" for="remTime">Hora del recordatorio</label>
+          <input type="time" id="remTime" value="08:30">
+        </div>
+        <div>
+          <div class="row">
+            <button class="btn primary" id="icsBtn">Añadir a mi calendario</button>
+            <button class="btn" id="notifBtn">Activar avisos del navegador</button>
+          </div>
+          <p class="small" style="margin-top:10px" id="remStatus">El archivo .ics funciona con Google Calendar, Apple Calendar y Outlook: ábrelo y acepta el evento diario. Los avisos del navegador solo saltan si tienes esta web abierta.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap row">
+    <span>Tu progreso vive en este navegador. Haz una copia de vez en cuando.</span>
+    <span class="row">
+      <button class="btn" id="exportBtn">Exportar progreso</button>
+      <label class="btn" for="importFile" style="cursor:pointer">Importar progreso</label>
+      <input type="file" id="importFile" accept="application/json" class="sr">
+    </span>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const NAME = "Victor"; // Cambia tu nombre aquí
+
+  /* ---------- Storage ---------- */
+  const KEY = "ritual-diario-v1";
+  let state = { days: {}, settings: { time: "08:30", notify: false, lastNotified: "" } };
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      state = { days: parsed.days || {}, settings: Object.assign(state.settings, parsed.settings || {}) };
+    }
+  } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+
+  const pad = n => String(n).padStart(2, "0");
+  const keyOf = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const todayKey = () => keyOf(new Date());
+  const dayIndex = () => { const d = new Date(); return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5); };
+  const getDay = k => (state.days[k] = state.days[k] || { items: {}, note: "" });
+
+  /* ---------- Habits ---------- */
+  const HABITS = [
+    { id: "news", t: "Leer las noticias", h: "3 historias de la semana.", link: "#noticias", lt: "Ir a noticias" },
+    { id: "meditate", t: "Meditar", h: "Al menos 5 minutos.", link: "#meditar", lt: "Abrir temporizador" },
+    { id: "learn", t: "Aprender algo nuevo", h: "Lee la lección y haz el mini reto.", link: "#aprender", lt: "Ver lección" },
+    { id: "code", t: "Reto de código", h: "20 minutos resolviendo un problema.", link: "https://leetcode.com/problemset/", lt: "Problema en LeetCode", ext: true },
+    { id: "english", t: "Inglés", h: "10 minutos: un podcast, un vídeo o la frase del día.", link: "#aprender", lt: "Frase del día" },
+    { id: "move", t: "Moverte", h: "Gimnasio o 30 minutos caminando.", link: null },
+    { id: "journal", t: "Escribir lo aprendido", h: "Una línea en tu diario.", link: "#note", lt: "Escribir" }
+  ];
+  const DAY_GOAL = 4;
+  const checkSvg = '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.5l3 3 6-7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  const listEl = document.getElementById("checklist");
+  function renderChecklist() {
+    const day = getDay(todayKey());
+    listEl.innerHTML = HABITS.map(h => `
+      <li><label class="check">
+        <input type="checkbox" data-id="${h.id}" ${day.items[h.id] ? "checked" : ""}>
+        <span class="box">${checkSvg}</span>
+        <span class="txt"><span class="t">${h.t}</span><span class="h">${h.h}</span>
+        ${h.link ? `<a href="${h.link}" ${h.ext ? 'target="_blank" rel="noopener"' : ""}>${h.lt}</a>` : ""}</span>
+      </label></li>`).join("");
+  }
+  listEl.addEventListener("change", e => {
+    const id = e.target.dataset.id; if (!id) return;
+    setHabit(id, e.target.checked);
+  });
+  function setHabit(id, val) {
+    const day = getDay(todayKey());
+    day.items[id] = !!val; save();
+    const box = listEl.querySelector(`input[data-id="${id}"]`); if (box) box.checked = !!val;
+    renderScore(); renderHeat(false);
+  }
+  const countDone = k => { const d = state.days[k]; return d ? HABITS.filter(h => d.items[h.id]).length : 0; };
+
+  function streak() {
+    let n = 0; const d = new Date();
+    if (countDone(keyOf(d)) < DAY_GOAL) d.setDate(d.getDate() - 1); // hoy aún no rompe la racha
+    while (countDone(keyOf(d)) >= DAY_GOAL) { n++; d.setDate(d.getDate() - 1); }
+    return n;
+  }
+  function renderScore() {
+    const done = countDone(todayKey());
+    document.getElementById("score").textContent = `${done} de ${HABITS.length} hechos hoy`;
+    const s = streak();
+    document.getElementById("streak").textContent = s === 1 ? "Racha: 1 día" : `Racha: ${s} días`;
+  }
+
+  /* ---------- Hero ---------- */
+  function renderHero() {
+    const now = new Date(), h = now.getHours();
+    const g = h < 6 ? "Buenas noches" : h < 14 ? "Buenos días" : h < 21 ? "Buenas tardes" : "Buenas noches";
+    document.getElementById("greeting").textContent = `${g}, ${NAME}.`;
+    const txt = now.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    document.getElementById("date").textContent = txt.charAt(0).toUpperCase() + txt.slice(1);
+  }
+
+  /* ---------- Heatmap ---------- */
+  const heatEl = document.getElementById("heat");
+  function renderHeat(animate) {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const dow = (today.getDay() + 6) % 7; // lunes = 0
+    const start = new Date(today); start.setDate(start.getDate() - dow - 52 * 7);
+    let html = ""; const d = new Date(start); let i = 0;
+    while (i < 53 * 7) {
+      const k = keyOf(d), future = d > today, n = countDone(k);
+      const lvl = future || n === 0 ? 0 : n <= 2 ? 1 : n <= 4 ? 2 : n <= 6 ? 3 : 4;
+      const cls = `cell${lvl ? " l" + lvl : ""}${future ? " future" : ""}${k === keyOf(today) ? " today" : ""}`;
+      const delay = animate ? ` style="animation-delay:${Math.floor(i / 7) * 12}ms"` : "";
+      html += `<i class="${cls}" title="${future ? "" : `${k}: ${n} de ${HABITS.length}`}"${delay}></i>`;
+      d.setDate(d.getDate() + 1); i++;
+    }
+    heatEl.innerHTML = html;
+    heatEl.classList.toggle("reveal", !!animate);
+  }
+
+  /* ---------- News (Hacker News via Algolia) ---------- */
+  const newsEl = document.getElementById("news");
+  const newsCache = {};
+  async function loadNews(q) {
+    newsEl.innerHTML = '<li class="status" style="display:block">Cargando las historias de la semana…</li>';
+    try {
+      let hits = newsCache[q];
+      if (!hits) {
+        const since = Math.floor(Date.now() / 1000) - 7 * 86400;
+        const url = `https://hn.algolia.com/api/v1/search?tags=story&hitsPerPage=60&numericFilters=${encodeURIComponent(`created_at_i>${since},points>20`)}&query=${encodeURIComponent(q)}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(res.status);
+        const data = await res.json();
+        hits = data.hits.sort((a, b) => (b.points || 0) - (a.points || 0)).slice(0, 10);
+        newsCache[q] = hits;
+      }
+      if (!hits.length) { newsEl.innerHTML = '<li class="status" style="display:block">Esta semana no hay historias destacadas con este filtro. Prueba con «Todo».</li>'; return; }
+      newsEl.innerHTML = hits.map(h => {
+        const link = h.url || `https://news.ycombinator.com/item?id=${h.objectID}`;
+        let domain = "news.ycombinator.com"; try { domain = new URL(link).hostname.replace(/^www\./, ""); } catch (e) {}
+        const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+        return `<li><a class="title" href="${esc(link)}" target="_blank" rel="noopener">${esc(h.title)}</a>
+          <span class="meta">${esc(domain)} · ${h.points} puntos · <a href="https://news.ycombinator.com/item?id=${h.objectID}" target="_blank" rel="noopener">${h.num_comments || 0} comentarios</a></span></li>`;
+      }).join("");
+    } catch (e) {
+      newsEl.innerHTML = '<li class="status" style="display:block">No se pudieron cargar las noticias. Comprueba tu conexión o abre <a href="https://news.ycombinator.com/best" target="_blank" rel="noopener">las mejores de Hacker News</a>.</li>';
+    }
+  }
+  document.getElementById("newsFilters").addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    e.currentTarget.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    loadNews(b.dataset.q);
+  });
+
+  /* ---------- Meditation ---------- */
+  const TECH = {
+    box: [{ l: "Inhala", s: 4, big: true }, { l: "Retén", s: 4, big: true }, { l: "Exhala", s: 4, big: false }, { l: "Retén", s: 4, big: false }],
+    "478": [{ l: "Inhala", s: 4, big: true }, { l: "Retén", s: 7, big: true }, { l: "Exhala", s: 8, big: false }],
+    coh: [{ l: "Inhala", s: 5, big: true }, { l: "Exhala", s: 5, big: false }]
+  };
+  const DESC = { Inhala: "Llena el abdomen despacio, por la nariz.", Retén: "Mantén el aire sin tensión.", Exhala: "Suelta el aire lento y completo." };
+  let tech = "box", minutes = 5, running = false, elapsed = 0, lastTick = 0, phaseIdx = -1, phaseLeft = 0, timerId = null;
+  const orb = document.getElementById("orb"), orbLabel = document.getElementById("orbLabel");
+  const timerEl = document.getElementById("timer"), phaseDesc = document.getElementById("phaseDesc");
+  const startBtn = document.getElementById("mediStart");
+  const fmt = s => `${pad(Math.floor(s / 60))}:${pad(Math.floor(s % 60))}`;
+  const showTime = () => { timerEl.textContent = fmt(Math.max(0, minutes * 60 - elapsed)); };
+
+  function nextPhase() {
+    const phases = TECH[tech];
+    phaseIdx = (phaseIdx + 1) % phases.length;
+    const p = phases[phaseIdx]; phaseLeft = p.s;
+    orb.style.transitionDuration = `${p.s}s`;
+    orb.style.transform = `scale(${p.big ? 1 : 0.55})`;
+    orbLabel.textContent = p.l; phaseDesc.textContent = DESC[p.l];
+  }
+  function tick() {
+    const now = performance.now(), dt = (now - lastTick) / 1000; lastTick = now;
+    elapsed += dt; phaseLeft -= dt;
+    if (phaseLeft <= 0) nextPhase();
+    showTime();
+    if (elapsed >= minutes * 60) finish();
+  }
+  function startMedi() {
+    if (running) { pauseMedi(); return; }
+    running = true; startBtn.textContent = "Pausar"; lastTick = performance.now();
+    if (phaseIdx === -1) nextPhase();
+    timerId = setInterval(tick, 200);
+  }
+  function pauseMedi() {
+    running = false; clearInterval(timerId); startBtn.textContent = "Seguir";
+    phaseDesc.textContent = "En pausa.";
+  }
+  function resetMedi() {
+    running = false; clearInterval(timerId); elapsed = 0; phaseIdx = -1;
+    startBtn.textContent = "Empezar"; orb.style.transitionDuration = "0.6s"; orb.style.transform = "scale(.55)";
+    orbLabel.textContent = "Listo"; phaseDesc.textContent = "Elige duración y empieza."; showTime();
+  }
+  function finish() {
+    resetMedi(); chime();
+    orbLabel.textContent = "Hecho"; phaseDesc.textContent = "Sesión completada. Quédate 30 segundos quieto antes de levantarte.";
+    setHabit("meditate", true);
+  }
+  function chime() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [528, 792].forEach((f, i) => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = "sine"; o.frequency.value = f; o.connect(g); g.connect(ctx.destination);
+        const t = ctx.currentTime + i * 0.25;
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.25, t + 0.05); g.gain.exponentialRampToValueAtTime(0.0001, t + 2.2);
+        o.start(t); o.stop(t + 2.3);
+      });
+    } catch (e) {}
+  }
+  startBtn.addEventListener("click", startMedi);
+  document.getElementById("mediReset").addEventListener("click", resetMedi);
+  function segPick(groupId, attr, cb) {
+    document.getElementById(groupId).addEventListener("click", e => {
+      const b = e.target.closest("button"); if (!b) return;
+      e.currentTarget.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+      cb(b.dataset[attr]);
+    });
+  }
+  segPick("techniques", "t", v => { tech = v; resetMedi(); });
+  segPick("durations", "m", v => { minutes = Number(v); resetMedi(); });
+
+  /* ---------- Lessons ---------- */
+  const LESSONS = [
+    { c: "IA", t: "Embeddings", b: "Un embedding convierte un texto (o imagen) en un vector de números donde los significados parecidos quedan cerca. «Perro» y «cachorro» acaban próximos; «perro» y «factura», lejos. Se comparan con la similitud del coseno y son la base de los buscadores semánticos.", r: "Con sentence-transformers, calcula la similitud entre tres frases y comprueba que las dos parecidas puntúan más alto.", u: "https://www.sbert.net" },
+    { c: "IA", t: "RAG: generación aumentada por recuperación", b: "En vez de reentrenar el modelo, buscas los documentos relevantes y los pegas en el prompt. Así el LLM responde con información tuya y actualizada. Las piezas: trocear documentos, crear embeddings, guardarlos en una base vectorial y recuperar los mejores para cada pregunta.", r: "Monta un mini RAG con 5 párrafos de tus apuntes y hazle 3 preguntas.", u: "https://en.wikipedia.org/wiki/Retrieval-augmented_generation" },
+    { c: "IA", t: "Tokens y tokenización", b: "Los LLM no leen letras ni palabras, sino tokens: trozos de texto frecuentes, a menudo obtenidos con Byte Pair Encoding. Por eso el precio, el límite de contexto y algunas rarezas (contar letras) dependen de los tokens, no de las palabras.", r: "Escribe la misma frase en español e inglés en un tokenizador online y compara cuántos tokens ocupa cada una.", u: "https://en.wikipedia.org/wiki/Byte_pair_encoding" },
+    { c: "IA", t: "Temperatura y muestreo", b: "El modelo da una probabilidad a cada token posible. La temperatura aplana o afila esa distribución: con 0 casi siempre elige el más probable (bueno para tools y código); con valores altos es más creativo y menos predecible. Top-p limita la elección a los tokens que suman cierta probabilidad.", r: "Pide el mismo eslogan con temperatura 0 y 1 cinco veces y compara la variedad.", u: "https://huggingface.co/blog/how-to-generate" },
+    { c: "IA", t: "Agentes ReAct", b: "Un agente alterna razonar y actuar: el modelo decide llamar a una herramienta, lee el resultado y vuelve a decidir, hasta poder responder. Es exactamente el bucle llm_call → tool_node de LangGraph.", r: "Añade a tu agente una herramienta nueva (por ejemplo, convertir divisas) y mira cuándo decide usarla.", u: "https://arxiv.org/abs/2210.03629" },
+    { c: "IA", t: "Prompting, RAG o fine-tuning", b: "Primero prueba con un buen prompt. Si al modelo le falta información, usa RAG. Si lo que falla es el formato, el tono o una tarea muy concreta repetida miles de veces, entonces fine-tuning. Fine-tuning enseña comportamiento, no hechos nuevos fiables.", r: "Piensa en un proyecto tuyo y decide cuál de los tres usarías y por qué, en dos frases.", u: "https://en.wikipedia.org/wiki/Fine-tuning_(deep_learning)" },
+    { c: "IA", t: "La atención de los Transformers", b: "La atención permite que cada token mire a todos los demás y decida cuáles le importan para entender su significado. Se calcula con tres proyecciones: query, key y value. Es la idea central del paper «Attention Is All You Need» de 2017.", r: "Lee solo el resumen y la figura 1 del paper e intenta explicarla en voz alta en un minuto.", u: "https://arxiv.org/abs/1706.03762" },
+    { c: "IA", t: "Overfitting y validación cruzada", b: "Un modelo sobreajustado memoriza el entrenamiento y falla con datos nuevos. La validación cruzada divide los datos en k partes, entrena con k−1 y evalúa con la restante, rotando. Así la métrica no depende de un único reparto afortunado.", r: "En scikit-learn, usa cross_val_score con cv=5 en el dataset iris y mira la desviación entre pliegues.", u: "https://en.wikipedia.org/wiki/Cross-validation_(statistics)" },
+    { c: "IA", t: "Precisión, recall y F1", b: "Precisión: de lo que marqué como positivo, cuánto lo era. Recall: de todos los positivos reales, cuántos encontré. F1 es su media armónica. Con clases desbalanceadas (fraude, enfermedades) la exactitud engaña y estas métricas no.", r: "Calcula a mano las tres métricas para un detector que acierta 8 de 10 fraudes y da 4 falsas alarmas.", u: "https://en.wikipedia.org/wiki/Precision_and_recall" },
+    { c: "IA", t: "Evals para LLMs", b: "Una eval es un conjunto de casos de prueba con la respuesta esperada o un criterio para juzgarla. Sin evals, cada cambio de prompt es una apuesta. Empieza pequeño: 10–20 casos reales y una comprobación automática sencilla.", r: "Escribe 10 casos para tu agente de LangGraph y comprueba cuántos pasa.", u: "https://hamel.dev/blog/posts/evals/" },
+    { c: "IA", t: "Model Context Protocol (MCP)", b: "MCP es un estándar abierto para conectar modelos con herramientas y datos: un servidor expone tools, recursos y prompts, y cualquier cliente compatible los puede usar. Evita escribir una integración distinta para cada app.", r: "Lee el quickstart y lista qué tools expondrías en un servidor MCP para tus datos del gimnasio o de tus proyectos.", u: "https://modelcontextprotocol.io" },
+    { c: "Big Data", t: "Formatos columnares: Parquet", b: "CSV guarda fila a fila; Parquet guarda columna a columna, comprimida y con estadísticas por bloque. Si una consulta usa 3 de 50 columnas, solo lee esas 3. Por eso es el formato por defecto en lagos de datos.", r: "Guarda el mismo DataFrame en CSV y Parquet con pandas y compara tamaño y tiempo de lectura.", u: "https://parquet.apache.org" },
+    { c: "Big Data", t: "Particionado", b: "Particionar es guardar los datos en carpetas según una columna, por ejemplo fecha=2026-10-12. Las consultas que filtran por esa columna se saltan el resto (partition pruning). Ojo: demasiadas particiones pequeñas también ralentizan.", r: "Escribe un dataset con PySpark usando partitionBy(\"fecha\") y mira la estructura de carpetas.", u: "https://spark.apache.org/docs/latest/sql-data-sources-parquet.html" },
+    { c: "Big Data", t: "Evaluación perezosa en Spark", b: "En Spark, las transformaciones (filter, select, join) no se ejecutan al escribirlas: solo construyen un plan. Se ejecuta todo cuando llamas a una acción (count, write, collect). Esto permite a Spark optimizar el plan completo.", r: "Llama a explain() sobre un DataFrame con dos filtros y un join y lee el plan físico.", u: "https://spark.apache.org/docs/latest/rdd-programming-guide.html" },
+    { c: "Big Data", t: "ETL frente a ELT", b: "ETL transforma los datos antes de cargarlos en el almacén. ELT los carga en bruto y los transforma dentro del almacén con SQL, aprovechando su potencia. Con almacenes en la nube como BigQuery o Snowflake, ELT es lo más habitual.", r: "Dibuja el flujo de un pipeline que conozcas e indica si es ETL o ELT.", u: "https://en.wikipedia.org/wiki/Extract,_load,_transform" },
+    { c: "Big Data", t: "Lakehouse y formatos de tabla", b: "Un lakehouse combina el almacenamiento barato de un data lake con funciones de base de datos: transacciones, esquemas y viajes en el tiempo. Lo consiguen formatos de tabla abiertos como Apache Iceberg o Delta Lake sobre ficheros Parquet.", r: "Lee la página de Iceberg y apunta qué problema resuelve el «time travel».", u: "https://iceberg.apache.org" },
+    { c: "Big Data", t: "Pipelines idempotentes", b: "Un proceso es idempotente si ejecutarlo dos veces deja el mismo resultado que una. En pipelines significa poder reintentar sin duplicar datos: sobrescribir la partición del día en vez de añadir filas, o usar MERGE con una clave.", r: "Revisa un script tuyo: ¿qué pasaría si se ejecuta dos veces seguidas?", u: "https://en.wikipedia.org/wiki/Idempotence" },
+    { c: "Big Data", t: "Arquitectura medallion", b: "Organiza el lago en capas: bronce (datos en bruto tal como llegan), plata (limpios y validados) y oro (agregados listos para negocio). Cada capa tiene un propósito claro y facilita encontrar dónde se rompió algo.", r: "Clasifica en bronce, plata u oro tres tablas que veas en tus prácticas.", u: "https://www.databricks.com/glossary/medallion-architecture" },
+    { c: "Big Data", t: "Funciones de ventana en SQL", b: "Las window functions calculan sobre un grupo de filas sin colapsarlas: ROW_NUMBER, LAG, SUM() OVER (PARTITION BY … ORDER BY …). Sirven para rankings, acumulados y comparar con el día anterior.", r: "Escribe una consulta que muestre las ventas de cada día y la diferencia con el día anterior usando LAG.", u: "https://www.postgresql.org/docs/current/tutorial-window.html" },
+    { c: "Big Data", t: "Teorema CAP", b: "Ante una partición de red, un sistema distribuido debe elegir entre consistencia (todos ven el mismo dato) y disponibilidad (siempre responde). Ayuda a entender por qué cada base de datos distribuida hace compromisos distintos.", r: "Busca si Cassandra prioriza consistencia o disponibilidad y por qué.", u: "https://en.wikipedia.org/wiki/CAP_theorem" },
+    { c: "Big Data", t: "Kafka y el streaming", b: "Kafka es un log distribuido: los productores escriben eventos en topics y los consumidores los leen a su ritmo, guardando su posición (offset). Los eventos se conservan un tiempo, así que puedes releerlos o añadir consumidores nuevos.", r: "Lee la introducción de Kafka y explica con tus palabras qué es un consumer group.", u: "https://kafka.apache.org/intro" },
+    { c: "Big Data", t: "Orquestación con Airflow", b: "Airflow define pipelines como DAGs en Python: tareas con dependencias que se programan y reintentan. Lo importante es que las tareas sean pequeñas, idempotentes y que el DAG no haga trabajo pesado al cargarse.", r: "Escribe un DAG de 3 tareas (extraer, transformar, cargar) aunque solo hagan print.", u: "https://airflow.apache.org/docs/" },
+    { c: "Big Data", t: "Tests de calidad de datos", b: "Igual que el código, los datos se testean: claves únicas, campos no nulos, valores dentro de un rango, relaciones entre tablas. Herramientas como dbt los ejecutan en cada carga y paran el pipeline si algo falla.", r: "Enumera 4 tests que pondrías a una tabla de clientes.", u: "https://docs.getdbt.com/docs/build/data-tests" },
+    { c: "Big Data", t: "Esquema en estrella", b: "En un almacén analítico, una tabla de hechos guarda eventos medibles (ventas, clics) y se rodea de tablas de dimensiones (cliente, producto, fecha). Simplifica las consultas y es la base del modelado dimensional de Kimball.", r: "Diseña hechos y dimensiones para una app de reservas de pistas de pádel.", u: "https://en.wikipedia.org/wiki/Star_schema" },
+    { c: "Cloud", t: "Clases de almacenamiento", b: "En Google Cloud Storage, Standard es para datos que usas a menudo; Nearline, Coldline y Archive son más baratas para guardar pero cobran por leer y tienen duración mínima de 30, 90 y 365 días. Las reglas de ciclo de vida mueven los objetos solas.", r: "Diseña una regla de ciclo de vida para logs: Standard 30 días, luego Coldline, borrar al año.", u: "https://cloud.google.com/storage/docs/storage-classes" },
+    { c: "Cloud", t: "Imágenes y capas de Docker", b: "Cada instrucción del Dockerfile crea una capa cacheada. Si copias primero requirements.txt e instalas dependencias y después copias el código, cambiar el código no reinstala todo. Orden correcto, builds mucho más rápidos.", r: "Reordena un Dockerfile tuyo para aprovechar la caché y mide el tiempo de build.", u: "https://docs.docker.com/get-started/" },
+    { c: "Cloud", t: "Serverless y arranques en frío", b: "En serverless no gestionas servidores: tu función se ejecuta bajo demanda y escala sola. El coste: la primera petición tras un rato sin uso tarda más (cold start) porque hay que levantar el entorno.", r: "Despliega una función en Vercel y compara el tiempo de la primera petición con la segunda.", u: "https://vercel.com/docs/functions" },
+    { c: "Cloud", t: "Mínimo privilegio", b: "Cada usuario, servicio o clave debe tener solo los permisos que necesita y nada más. Si se filtra una clave con permisos de lectura de un bucket, el daño es pequeño; si es de administrador, es total.", r: "Revisa qué permisos tienen tus API keys y tokens de proyectos personales.", u: "https://en.wikipedia.org/wiki/Principle_of_least_privilege" },
+    { c: "Startups", t: "El producto mínimo viable", b: "Un MVP es la versión más pequeña que te permite aprender si a alguien le importa el problema. No es un producto malo: es un experimento. A veces es una landing page, un formulario o hacerlo a mano.", r: "Para tu última idea, describe un MVP que puedas lanzar en un fin de semana.", u: "https://en.wikipedia.org/wiki/Minimum_viable_product" },
+    { c: "Startups", t: "Hablar con usuarios", b: "No preguntes «¿usarías esto?»: todos dirán que sí. Pregunta por su vida y su pasado: cuándo fue la última vez que tuvieron el problema, qué hicieron y cuánto les costó. Es la idea de The Mom Test.", r: "Escribe 5 preguntas sobre el pasado para validar una idea, sin mencionar tu solución.", u: "https://www.momtestbook.com" },
+    { c: "Startups", t: "Haz cosas que no escalan", b: "Al principio, consigue usuarios uno a uno y cuídalos a mano. Es lento, pero te enseña qué quieren de verdad. Es uno de los ensayos más famosos de Paul Graham.", r: "Lee el ensayo y apunta una acción manual que harías para tus 10 primeros usuarios.", u: "https://paulgraham.com/ds.html" },
+    { c: "Startups", t: "CAC, LTV y churn", b: "CAC es lo que cuesta conseguir un cliente; LTV, lo que te deja en toda su vida; churn, el porcentaje que se va cada mes. Una regla común: el LTV debería ser al menos unas 3 veces el CAC.", r: "Calcula el LTV de una suscripción de 8 €/mes con un churn mensual del 5% (pista: 8 / 0,05).", u: "https://en.wikipedia.org/wiki/Customer_lifetime_value" },
+    { c: "Startups", t: "¿Default alive o default dead?", b: "Una startup está «default alive» si, con sus gastos y crecimiento actuales, llegará a ser rentable antes de quedarse sin dinero. Hacerse esta pregunta pronto evita depender de una ronda que quizá no llegue.", r: "Lee el ensayo de Paul Graham y resume en una frase la pregunta clave.", u: "https://paulgraham.com/aord.html" },
+    { c: "Hackathons", t: "Recorta el alcance", b: "En 24–36 horas gana quien enseña una demo que funciona, no quien tiene más funciones. Elige un solo flujo principal, falsea lo secundario con datos de ejemplo y deja la autenticación para el final.", r: "Toma una idea y escribe el único flujo que enseñarías en la demo, en 5 pasos.", u: "https://devpost.com/hackathons" },
+    { c: "Hackathons", t: "El pitch de 2 minutos", b: "Estructura: problema con una historia concreta (20 s), demo en vivo (60 s), cómo funciona por dentro (20 s) e impacto o siguiente paso (20 s). Ten un vídeo grabado de la demo por si falla el wifi.", r: "Graba un pitch de 2 minutos de un proyecto tuyo con el móvil y míralo.", u: "https://devpost.com/hackathons" },
+    { c: "Hackathons", t: "Juega con los premios de sponsors", b: "Muchos hackathons tienen premios por usar la API o el producto de un sponsor, además del premio general. Elegir bien 1 o 2 retos de sponsor multiplica tus opciones sin cambiar la idea.", r: "Mira los retos del último hackathon de Devpost que te interese y elige cuáles encajarían con tu stack.", u: "https://devpost.com/hackathons" },
+    { c: "Programación", t: "Notación Big O", b: "Big O describe cómo crece el coste de un algoritmo con el tamaño de la entrada. Buscar en una lista es O(n); en un diccionario, O(1) de media; ordenar, O(n log n). Con millones de filas, la diferencia es enorme.", r: "Cambia una búsqueda en lista dentro de un bucle por un set y mide el tiempo con 100.000 elementos.", u: "https://en.wikipedia.org/wiki/Big_O_notation" },
+    { c: "Programación", t: "Git: rebase frente a merge", b: "Merge une dos ramas con un commit de unión y conserva la historia tal cual. Rebase reescribe tus commits encima de la otra rama y deja una historia lineal. Regla de oro: no hagas rebase de commits que ya ha bajado otra persona.", r: "En un repo de prueba, crea dos ramas y prueba ambos caminos mirando git log --graph.", u: "https://git-scm.com/book/en/v2/Git-Branching-Rebasing" },
+    { c: "Aprender a aprender", t: "Repetición espaciada", b: "Olvidamos rápido, pero cada repaso justo antes de olvidar alarga el recuerdo. Repasar a 1, 3, 7 y 21 días fija mucho más que estudiar todo de golpe. Apps como Anki lo automatizan.", r: "Crea 5 tarjetas con lo que has aprendido esta semana y repásalas mañana.", u: "https://en.wikipedia.org/wiki/Spaced_repetition" },
+    { c: "Aprender a aprender", t: "Explícalo como si fuera a un niño", b: "Si no puedes explicar algo con palabras simples, aún no lo entiendes del todo. Explicar en voz alta o por escrito revela los huecos y te obliga a rellenarlos.", r: "Explica la lección de ayer en 3 frases sin usar tecnicismos.", u: "https://en.wikipedia.org/wiki/Learning_by_teaching" }
+  ];
+  let lessonOffset = 0;
+  const lessonEl = document.getElementById("lesson");
+  function renderLesson() {
+    const i = ((dayIndex() + lessonOffset) % LESSONS.length + LESSONS.length) % LESSONS.length, L = LESSONS[i];
+    lessonEl.innerHTML = `<span class="tag">${L.c}</span><h3>${L.t}</h3><p>${L.b}</p>
+      <div class="try"><b>Pruébalo hoy</b>${L.r}</div>
+      <p style="margin:14px 0 0"><a href="${L.u}" target="_blank" rel="noopener">Profundizar en el tema</a></p>`;
+    document.getElementById("lessonCount").textContent = lessonOffset === 0 ? "Lección de hoy" : "Lección extra";
+  }
+  document.getElementById("nextLesson").addEventListener("click", () => { lessonOffset++; renderLesson(); });
+
+  /* ---------- Journal ---------- */
+  const noteEl = document.getElementById("note"), savedEl = document.getElementById("saved");
+  let noteTimer = null;
+  noteEl.addEventListener("input", () => {
+    clearTimeout(noteTimer);
+    noteTimer = setTimeout(() => {
+      getDay(todayKey()).note = noteEl.value; save();
+      savedEl.textContent = "Guardado.";
+      if (noteEl.value.trim().length > 3) setHabit("journal", true);
+    }, 600);
+  });
+
+  /* ---------- English phrase ---------- */
+  const PHRASES = [
+    ["Could you walk me through it?", "¿Me lo explicas paso a paso? Ideal en reuniones de trabajo."],
+    ["I'm still getting up to speed.", "Todavía me estoy poniendo al día."],
+    ["What got you into tech?", "¿Cómo acabaste en tecnología? Para empezar conversaciones en eventos."],
+    ["Let me get back to you on that.", "Déjame que lo mire y te digo."],
+    ["I'm on the fence about it.", "No lo tengo claro todavía."],
+    ["That makes sense.", "Tiene sentido."],
+    ["What are you working on these days?", "¿En qué andas metido últimamente?"],
+    ["I'd love to hear more about it.", "Me encantaría saber más."],
+    ["Mind if I join you?", "¿Os importa si me uno?"],
+    ["It slipped my mind.", "Se me pasó por completo."],
+    ["Let's touch base next week.", "Hablamos la semana que viene."],
+    ["Fair enough.", "Vale, es razonable."],
+    ["I'll keep you posted.", "Te voy contando."],
+    ["Sounds like a plan.", "Me parece un buen plan."],
+    ["We're shipping it by Friday.", "Lo lanzamos el viernes. «Ship» = publicar o entregar."],
+    ["Can I pick your brain about something?", "¿Te puedo consultar una cosa?"]
+  ];
+  function renderPhrase() {
+    const p = PHRASES[dayIndex() % PHRASES.length];
+    document.getElementById("phraseEn").textContent = p[0];
+    document.getElementById("phraseEs").textContent = p[1];
+  }
+
+  /* ---------- Idea generator ---------- */
+  const TECHS = ["un agente de IA", "visión por computador", "un pipeline de datos en tiempo real", "búsqueda semántica con embeddings", "un dashboard con datos abiertos", "un bot de Telegram con LLM", "una Raspberry Pi con sensores", "un modelo de predicción"];
+  const PROBLEMS = ["reducir el desperdicio de comida", "encontrar piso compartido", "preparar exámenes de FP y universidad", "repartir gastos entre amigos", "elegir rutas en bici seguras", "detectar fraude en pequeños comercios", "planificar entrenamientos de gimnasio", "conectar estudiantes con mentores", "ahorrar energía en casa", "encontrar plan los fines de semana"];
+  const USERS = ["estudiantes", "restaurantes de barrio", "equipos de hackathon", "personas mayores", "clubs deportivos", "ayuntamientos", "pequeñas tiendas online", "recién llegados a Barcelona"];
+  let ideaSeed = dayIndex();
+  const pick = (arr, n) => arr[((n % arr.length) + arr.length) % arr.length];
+  function renderIdea() {
+    const s = ideaSeed;
+    document.getElementById("idea").textContent = `Usa ${pick(TECHS, s * 7 + 3)} para ${pick(PROBLEMS, s * 3 + 1)}, pensado para ${pick(USERS, s * 5 + 2)}.`;
+  }
+  document.getElementById("newIdea").addEventListener("click", () => { ideaSeed += 1 + Math.floor(Math.random() * 50); renderIdea(); });
+
+  /* ---------- Reminders ---------- */
+  const timeEl = document.getElementById("remTime"), remStatus = document.getElementById("remStatus"), notifBtn = document.getElementById("notifBtn");
+  timeEl.value = state.settings.time;
+  timeEl.addEventListener("change", () => { state.settings.time = timeEl.value || "08:30"; save(); });
+
+  document.getElementById("icsBtn").addEventListener("click", () => {
+    const [hh, mm] = (timeEl.value || "08:30").split(":");
+    const start = new Date(); start.setDate(start.getDate() + 1);
+    const ds = `${start.getFullYear()}${pad(start.getMonth() + 1)}${pad(start.getDate())}T${hh}${mm}00`;
+    const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+    const url = location.href.startsWith("http") ? location.origin + location.pathname : "";
+    const ics = [
+      "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Ritual diario//ES", "CALSCALE:GREGORIAN",
+      "BEGIN:VEVENT",
+      `UID:ritual-diario-${Date.now()}@ritual`,
+      `DTSTAMP:${stamp}`,
+      `DTSTART:${ds}`,
+      "DURATION:PT45M",
+      "RRULE:FREQ=DAILY",
+      "SUMMARY:Ritual diario: noticias\\, meditar y aprender",
+      `DESCRIPTION:Noticias de la semana\\, 5 min de meditación\\, lección del día\\, reto de código e inglés.${url ? "\\n" + url : ""}`,
+      url ? `URL:${url}` : "",
+      "BEGIN:VALARM", "ACTION:DISPLAY", "TRIGGER:PT0M", "DESCRIPTION:Es la hora de tu ritual diario", "END:VALARM",
+      "END:VEVENT", "END:VCALENDAR"
+    ].filter(Boolean).join("\r\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }));
+    a.download = "ritual-diario.ics"; document.body.appendChild(a); a.click(); a.remove();
+    remStatus.textContent = `Descargado. Ábrelo y acepta el evento: te avisará cada día a las ${hh}:${mm} empezando mañana.`;
+  });
+
+  function updateNotifBtn() {
+    if (!("Notification" in window)) { notifBtn.disabled = true; notifBtn.textContent = "Avisos no disponibles"; return; }
+    if (Notification.permission === "denied") { notifBtn.textContent = "Avisos bloqueados en el navegador"; notifBtn.disabled = true; return; }
+    notifBtn.textContent = state.settings.notify && Notification.permission === "granted" ? "Desactivar avisos del navegador" : "Activar avisos del navegador";
+  }
+  notifBtn.addEventListener("click", async () => {
+    if (state.settings.notify) { state.settings.notify = false; save(); updateNotifBtn(); return; }
+    const p = await Notification.requestPermission();
+    state.settings.notify = p === "granted"; save(); updateNotifBtn();
+    if (p === "granted") remStatus.textContent = `Avisos activados para las ${timeEl.value}. Recuerda: solo con la web abierta.`;
+  });
+  function checkReminder() {
+    if (!state.settings.notify || !("Notification" in window) || Notification.permission !== "granted") return;
+    const now = new Date(), k = todayKey();
+    const cur = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    if (cur >= state.settings.time && state.settings.lastNotified !== k && countDone(k) < HABITS.length) {
+      state.settings.lastNotified = k; save();
+      try { new Notification("Tu ritual diario", { body: `Llevas ${countDone(k)} de ${HABITS.length}. Noticias, meditar y aprender te esperan.` }); } catch (e) {}
+    }
+  }
+
+  /* ---------- Export / import ---------- */
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(state, null, 2)], { type: "application/json" }));
+    a.download = `ritual-diario-${todayKey()}.json`; document.body.appendChild(a); a.click(); a.remove();
+  });
+  document.getElementById("importFile").addEventListener("change", async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      const data = JSON.parse(await f.text());
+      if (!data.days) throw new Error("formato");
+      state = { days: data.days, settings: Object.assign(state.settings, data.settings || {}) };
+      save(); boot(false);
+      alert("Progreso importado.");
+    } catch (err) { alert("Ese archivo no es una copia válida del ritual diario."); }
+    e.target.value = "";
+  });
+
+  /* ---------- Boot ---------- */
+  let lastDay = todayKey();
+  function boot(animate) {
+    renderHero(); renderChecklist(); renderScore(); renderHeat(animate);
+    renderLesson(); renderPhrase(); renderIdea();
+    noteEl.value = getDay(todayKey()).note || ""; savedEl.textContent = "";
+    timeEl.value = state.settings.time; updateNotifBtn();
+    const sc = document.getElementById("heatScroll"); sc.scrollLeft = sc.scrollWidth;
+  }
+  boot(true);
+  loadNews("");
+  showTime();
+  setInterval(() => {
+    if (todayKey() !== lastDay) { lastDay = todayKey(); lessonOffset = 0; ideaSeed = dayIndex(); boot(false); }
+    checkReminder();
+  }, 30000);
+  checkReminder();
+})();
+</script>
+</body>
+</html>
